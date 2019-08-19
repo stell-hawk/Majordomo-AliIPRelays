@@ -226,6 +226,7 @@ function usual(&$out) {
 function processCycle() {
  global $lib;
  $this->getConfig();
+ $table='AliIPRelay';
  $res=SQLSelect("SELECT * FROM AliIPRelays");
  foreach ($res as $v)
  {
@@ -235,7 +236,7 @@ function processCycle() {
  	if($e8r->connected)
  	{
  	  $getr=$e8r->get_data();
- 	  print_r($getr);
+ 	  //print_r($getr);
  	  $data=array();
  	  foreach ($getr as $key => $val)
  	  {
@@ -243,15 +244,28 @@ function processCycle() {
  	  	$data['TITLE']="ch ".$key;
  	  	$data['ch_num']=$key;
  	  	$data['relay_id']=$v['ID'];
-	  	SQLExec(
+ 	  	$sql="SELECT * FROM $table WHERE ch_num='".DBSafe($data['ch_num'])."' AND relay_id='".DBSafe($data['relay_id'])."'";
+ 	  	$properties=SQLSelectOne($sql);
+ 	  	if(!$properties)
+	  	{
+	  		//echo "need to add\n";
+	  		SQLExec(
  	  	 "INSERT INTO `AliIPRelay` (VALUE, ch_num,relay_id,TITLE) 
  	  	 VALUES ('".$data['VALUE']."','".$data['ch_num']."','".$data['relay_id']."','".$data['TITLE']."')
  	  	 ON DUPLICATE KEY UPDATE VALUE='".$data['VALUE']."'");
-   		$table='AliIPRelay';   		
-   		$sql="SELECT * FROM $table WHERE ch_num='".DBSafe($data['ch_num'])."' AND relay_id='".DBSafe($data['relay_id'])."' and LINKED_OBJECT<>''";
-   		//echo $sql."\n";
-   		$properties=SQLSelectOne($sql);
-   		if($properties)
+ 	  	}
+ 	  	if($properties['VALUE']!=$data['VALUE'])
+	  	{
+	  		//echo "need to update\n";
+	  		SQLExec(
+ 	  	 "INSERT INTO `AliIPRelay` (VALUE, ch_num,relay_id,TITLE) 
+ 	  	 VALUES ('".$data['VALUE']."','".$data['ch_num']."','".$data['relay_id']."','".$data['TITLE']."')
+ 	  	 ON DUPLICATE KEY UPDATE VALUE='".$data['VALUE']."'");
+ 	  	}
+ 	  	/*else 
+ 	  	{echo "not need to update\n";	}*/
+ 	  	
+   		if($properties&&$properties['LINKED_OBJECT']!='')
    		{
    			if (gg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'])<>$data['VALUE'])
    			{
