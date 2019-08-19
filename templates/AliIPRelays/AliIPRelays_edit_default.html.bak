@@ -1,0 +1,88 @@
+
+<!-- Table 'AliIPRelays' edit -->
+<form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
+[#if OK#]
+<div class="alert alert-success"><#LANG_DATA_SAVED#></div>
+[#endif OK#]
+[#if ERR#]
+<div class="alert alert-danger"><#LANG_FILLOUT_REQURED#></div>
+[#endif ERR#]
+<fieldset>
+[#if ID=""#]
+<legend><#LANG_NEW_RECORD#></legend>
+[#endif ID#]
+<!-- TITLE (varchar) -->
+<div class="form-group[#if ERR_TITLE#] has-error[#endif#]">
+ <label for="title" class="col-lg-3 control-label">
+ <#LANG_TITLE#>:
+ (*)
+ </label>
+ <div class="col-lg-9"><input id="title" name="title" value="[#TITLE#]" type="text" class="form-control"></div>
+</div>
+<!-- IP,PORT,TITLE,STATUS,PERIOD (varchar) -->
+<div class="form-group[#if ERR_IP#] has-error[#endif#]">
+ <label for="IP" class="col-lg-3 control-label">
+ IP
+ </label>
+ <div class="col-lg-9"><input id="ip" name="ip" value="[#IP#]" type="text" class="form-control"></div>
+</div>
+
+<div class="form-group[#if ERR_PORT#] has-error[#endif#]">
+ <label for="port" class="col-lg-3 control-label">
+ port
+ </label>
+ <div class="col-lg-9"><input id="port" name="port" value="[#PORT#]" type="text" class="form-control"></div>
+</div>
+
+<div class="form-group[#if ERR_type#] has-error[#endif#]">
+ <label for="type" class="col-lg-3 control-label">
+ type
+ </label>
+ <div class="col-lg-9">
+ 	<select name="type" id="type"  class="selectpicker show-tick form-control">
+ 		<option data-content="Eth8Relay v5" value="Eth8Relay v5" [#if type="Eth8Relay v5"#] selected[#endif#]>Eth8Relay v5</option> 
+ 		<option data-content="Eth8Relay v6" value="Eth8Relay v6" [#if type="Eth8Relay v6"#] selected[#endif#]>Eth8Relay v6</option> 
+ 		<?php
+ 		//<option data-content="kc868-h8" value="kc868-h8" [#if type="kc868-h8"#] selected[#endif#]>kc868-h8</option> 
+ 		//<option data-content="kc868-h16" value="kc868-h16" [#if type="kc868-h16"#] selected[#endif#]>kc868-h16</option> 
+ 		?>
+ 		<option data-content="kc868-h32" value="kc868-h32" [#if type="kc868-h32"#] selected[#endif#]>kc868-h32</option> 
+ 	</select>
+ 	</div>
+ 	
+ 	
+</div>
+<?php
+/*
+<div class="form-group[#if ERR_tcp_mode#] has-error[#endif#]">
+ <label for="type" class="col-lg-3 control-label">
+ tcp_mode
+ </label>
+ <div class="col-lg-9">
+ 	 	<select name="tcp_mode" id="tcp_mode"  class="selectpicker show-tick form-control">
+ 		<option data-content="Немедленно" value="Немедленно" [#if tcp_mode="Немедленно"#] selected[#endif#]>Немедленно</option> 
+ 		<option data-content="В очередь" value="В очередь" [#if tcp_mode="В очередь"#] selected[#endif#]>В очередь</option> 
+ 	</select>
+ 	</div>
+</div>
+*/?>
+
+
+<div class="form-group">
+        <div class="col-lg-offset-3 col-lg-4">
+ [#if ID!=""#]
+ <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_SUBMIT#></button>
+ [#else ID#]
+ <button type="submit" name="subm" value="Add" class="btn btn-primary"><#LANG_ADD#></button>
+ [#endif ID#]
+ <a href="?data_source=<#DATA_SOURCE#>" class="btn btn-default "><#LANG_CANCEL#></a>
+<input type="hidden" name="id" value="<#ID#>">
+<input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
+<input type="hidden" name="edit_mode" value="<#EDIT_MODE#>">
+<input type="hidden" name="mode" value="update">
+<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
+<input type="hidden" name="tab" value="<#TAB#>">
+        </div>
+</div>
+</fieldset>
+</form>
