@@ -127,7 +127,7 @@ function get_data()
  	elseif(strstr($data,'IL'))$out[($num+100)]="0";
  	elseif(strstr($data,'IH'))$out[($num+100)]=1;
 }
-print_r($out);
+	//print_r($out);
  	return $out;
 }
 
