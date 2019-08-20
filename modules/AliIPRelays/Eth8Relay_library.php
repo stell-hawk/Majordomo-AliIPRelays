@@ -121,11 +121,13 @@ function get_data()
  	foreach($getr as $data)
  	{
  		list($data,$num)=explode(" ",$data);
+ 		
  	if(strstr($data,'relayon'))$out[($num+0)]=1;
- 	elseif(strstr($data,'relayoff'))$out[($num+0)]=0;
- 	elseif(strstr($data,'IL'))$out[($num+100)]=0;
+ 	elseif(strstr($data,'relayoff')){$out[($num+0)]="0";}
+ 	elseif(strstr($data,'IL'))$out[($num+100)]="0";
  	elseif(strstr($data,'IH'))$out[($num+100)]=1;
 }
+print_r($out);
  	return $out;
 }
 
