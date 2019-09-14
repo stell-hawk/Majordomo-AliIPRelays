@@ -363,7 +363,7 @@ AliIPRelays_queue -
  AliIPRelay: LINKED_METHOD varchar(100) NOT NULL DEFAULT ''
  AliIPRelay: UPDATED TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
  AliIPRelay: INDEX relay_id (relay_id)
- AliIPRelay: UNIQUE uniq (relay_id, ch_num) USING BTREE
+// AliIPRelay: UNIQUE uniq (relay_id, ch_num) USING BTREE
  AliIPRelay: INDEX LINKED_OBJECT (LINKED_OBJECT)
  AliIPRelay: INDEX LINKED_PROPERTY (LINKED_PROPERTY)
   
