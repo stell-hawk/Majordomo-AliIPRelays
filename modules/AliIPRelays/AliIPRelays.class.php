@@ -9,7 +9,9 @@
 //
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relay_library.php');
 include_once(DIR_MODULES.'AliIPRelays/KinCony_library.php');
-$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relay','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony');
+include_once(DIR_MODULES.'AliIPRelays/Sr201_library.php');
+
+$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relay','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201');
 
 //
 class AliIPRelays extends module {
@@ -346,7 +348,7 @@ AliIPRelays_queue -
  AliIPRelays: IP varchar(15) NOT NULL DEFAULT ''
  AliIPRelays: PORT varchar(10) NOT NULL DEFAULT ''
  AliIPRelays: STATUS TINYINT
- AliIPRelays: type ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32') NOT NULL
+ AliIPRelays: type ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32','sr-201') NOT NULL
  AliIPRelays: tcp_mode ENUM('Немедленно','В очередь') DEFAULT 'Немедленно'
  AliIPRelays: period int(10) unsigned
  AliIPRelays: next_check datetime
