@@ -66,17 +66,21 @@ function Relay_status($num=1)
     return $this->status_decode($buf1);
 }
 
-function Relay_on($num=1)
+function Relay_on($num=1,$time=false)
 {
     $buf="1".$num;
+    if($time)$buf.=":".$time;
+
     $buf1=$this->send($buf);
     $buf1=$this->decode_status_by_number($buf1,$num);
     return $this->status_decode($buf1);
 }
 
-function Relay_off($num=1)
+function Relay_off($num=1,$time=false)
 {
     $buf="2".$num;
+    if($time)$buf.=":".$time;
+
     $buf1=$this->send($buf);
     $buf1=$this->decode_status_by_number($buf1,$num);
     return $this->status_decode($buf1,"off");
