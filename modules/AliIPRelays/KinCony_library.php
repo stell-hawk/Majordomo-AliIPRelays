@@ -56,7 +56,7 @@ function Relay_status($num=1)
 function Relay_on($num=1)
 {
     $buf="RELAY-SET-0,".$num.",1";
-    echo $buf1=$this->send($buf);
+    $buf1=$this->send($buf);
     return $this->status_decode($buf1);
 }
 

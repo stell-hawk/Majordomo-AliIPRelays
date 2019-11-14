@@ -274,7 +274,12 @@ function processCycle() {
    				echo "sg(".$properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'].",".$data['VALUE'].")\n";
    				sg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'],$data['VALUE']);
    			}
+	        if ($properties['LINKED_METHOD']) {
+                    callMethod($properties['LINKED_OBJECT'].'.'.$properties['LINKED_METHOD'],$data);
+            	    }
+                               			
    		}
+   		
  	  }
 	  
  	}
