@@ -19,7 +19,7 @@ if (!$tmp['ID'])
    exit; // no devices added -- no need to run this cycle
 echo date("H:i:s") . " running " . basename(__FILE__) . PHP_EOL;
 $latest_check=0;
-$checkEvery=20; // poll every 5 seconds
+$checkEvery=5; // poll every 5 seconds
 
 //Инициализация Kincony;
 global $lib;$sql=array();
@@ -30,7 +30,7 @@ foreach ($tmp as $v)
 {
  	$class=$lib[$v['type']]."_lib";
  	$e8r=new $class($v['IP'],$v['PORT']);
- 	$e8r->activate();
+ 	//$e8r->activate();
 }
 
 

@@ -28,9 +28,11 @@ $this->host=$host;
 $this->port=$port;
 $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 if (!$this->socket)echo 'Unable to create socket';
+socket_set_option($this->socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>AliConnectTimeout, "usec"=>0));
 //echo 'created socket'.$this->socket.'\n';
 $this->connected=socket_connect($this->socket,$this->host,$this->port);
-if (!$this->connected)echo 'Unable to connect';
+if (!$this->connected)echo 'Unable to connect to '.$this->host.":".$this->port;
+
 
 }
 function send($in)
@@ -61,6 +63,11 @@ function activate()
 {
 return true;	
 }
+function need_activate()
+{
+return false;	
+}
+
 	
 function status_decode($buf1,$type="on")
 {

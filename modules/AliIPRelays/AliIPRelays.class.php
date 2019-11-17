@@ -7,6 +7,8 @@
 * @version 0.1 (wizard, 11:08:54 [Aug 18, 2019])
 */
 //
+DEFINE("AliConnectTimeout",1);//таймаут в секундах
+
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relay_library.php');
 include_once(DIR_MODULES.'AliIPRelays/KinCony_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Sr201_library.php');
@@ -25,6 +27,7 @@ class AliIPRelays extends module {
 function __construct() {
   $this->name="AliIPRelays";
   $this->title="Ali IP Реле";
+  $this->lastsate=array();
   $this->module_category="<#LANG_SECTION_DEVICES#>";
   $this->checkInstalled();
 }
@@ -224,6 +227,45 @@ function usual(&$out) {
     }
    }
  }
+
+//Установить все значения согласно присоединенным устройствам
+ function RelaySetFromLinkedProporties($id,$getr) {
+ 	echo "Restore data from LinkedProporties\n";
+ 	 global $lib;
+   $table='AliIPRelay';
+   $properties=SQLSelect("SELECT * FROM $table WHERE LINKED_OBJECT <>'' AND LINKED_PROPERTY <>'' and relay_id=".$id);
+   $total=count($properties);
+   if ($total) {
+    for($i=0;$i<$total;$i++) {
+     //to-do
+     $v=SQLSelectOne("SELECT * FROM AliIPRelays where id=".$properties[$i]['relay_id']);
+ 		 $class=$lib[$v['type']]."_lib";
+ 	   $e8r=new $class($v['IP'],$v['PORT']);
+		 if($e8r->connected)
+ 			{
+ 				$prop_name=$properties[$i]['LINKED_OBJECT'].".".$properties[$i]['LINKED_PROPERTY'];
+ 				$prop_data=gg($prop_name);
+ 				//echo $prop_name." --> ".$prop_data." ??? ".$getr[$properties[$i]['ch_num']]."\n";
+ 				if($prop_data != $getr[$properties[$i]['ch_num']])
+ 				{
+ 				echo $prop_name." --> ".$prop_data." <> ".$getr[$properties[$i]['ch_num']]."\n";
+ 				if($prop_data)
+ 				{$e8r->Relay_on($properties[$i]['ch_num']);
+ 				echo "Relay_on(".$properties[$i]['ch_num'].")\n";
+ 				}
+ 				else 
+ 				{
+ 					$e8r->Relay_off($properties[$i]['ch_num']);
+ 					echo "Relay_off(".$properties[$i]['ch_num'].")\n"; 					
+ 				}
+ 				
+ 				}
+ 				//else echo "not need to change\n";
+    	}
+    }
+   }
+   
+ }
  
 function processCycle() {
  global $lib;
@@ -238,7 +280,16 @@ function processCycle() {
  	if($e8r->connected)
  	{
  	  $getr=$e8r->get_data();
- 	  //print_r($getr);
+ 	  //echo json_encode($getr);
+ 	  
+ 	  if($e8r->need_activate($getr))
+ 	  {
+ 	  	$e8r->activate();	
+ 	  	$this->RelaySetFromLinkedProporties($v['ID'],$getr);
+ 	  	$getr=$e8r->get_data();
+ 	  	}
+ 	   $this->lastsate[$v['IP'].":".$v['PORT']]=json_encode($getr);
+ 	  
  	  $data=array();
  	  foreach ($getr as $key => $val)
  	  {
@@ -276,7 +327,7 @@ function processCycle() {
    			}
 	        if ($properties['LINKED_METHOD']) {
                     callMethod($properties['LINKED_OBJECT'].'.'.$properties['LINKED_METHOD'],$data);
-            	    }
+          }
                                			
    		}
    		
@@ -285,6 +336,7 @@ function processCycle() {
  	}
  	
  }
+ //print_r($this->lastsate);
 	
 }
 
