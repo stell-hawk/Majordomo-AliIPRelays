@@ -1,10 +1,23 @@
 <?php
-include_once('../Sr201_library.php');
-$e8r=new sr201_lib("178.16.182.181",6722);
+
+DEFINE("AliConnectTimeout",1);//таймаут в секундах
+include_once('../Eth8Relayv2_library.php');
+$e8r=new Eth8Relayv2_lib("192.168.220.165",1234);
 
 echo "!test get_data:\n";
 print_r( $e8r->get_data());
+echo "!test Relay_on 7:\n";
+var_dump($e8r->Relay_on(7));
 
+//echo "!test Relay_off 7:\n";
+//var_dump($e8r->Relay_off(7));
+
+
+exit(0);
+$str=hex2bin("018cb4412f02fa");
+$echo=$e8r->send($str);
+
+var_dump(bin2hex($echo));
 
 //echo "!test Relay_on 1 ->0:\n";
 //var_dump($e8r->Relay_on(1));

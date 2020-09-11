@@ -10,10 +10,11 @@
 DEFINE("AliConnectTimeout",1);//таймаут в секундах
 
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relay_library.php');
+include_once(DIR_MODULES.'AliIPRelays/Eth8Relayv2_library.php');
 include_once(DIR_MODULES.'AliIPRelays/KinCony_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Sr201_library.php');
 
-$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relay','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201');
+$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relayv2','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201');
 
 //
 class AliIPRelays extends module {
