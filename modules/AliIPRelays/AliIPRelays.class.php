@@ -11,10 +11,11 @@ DEFINE("AliConnectTimeout",1);//таймаут в секундах
 
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relay_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relayv2_library.php');
+include_once(DIR_MODULES.'AliIPRelays/Yun_library.php');
 include_once(DIR_MODULES.'AliIPRelays/KinCony_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Sr201_library.php');
 
-$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relayv2','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201');
+$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relayv2','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201','Yun relay 32-32' =>'Yun');
 
 //
 class AliIPRelays extends module {
@@ -267,7 +268,50 @@ function usual(&$out) {
    }
    
  }
- 
+function processIncomingMessage()
+{
+	$ip=$_SERVER['REMOTE_ADDR'];
+	$data=$_REQUEST;
+
+	file_put_contents("/relay32-32.txt",var_export($_REQUEST,TRUE),FILE_APPEND);
+	file_put_contents("/relay32-32.txt",var_export($_SERVER	['REMOTE_ADDR'],TRUE),FILE_APPEND);
+	/*$ip='192.168.220.45';
+	$data=array ('inPort2' => '1','outPort24' => '0','i' => '26');
+	*/
+	
+ 	global $lib;
+ 	$this->getConfig();
+ 	$table='AliIPRelay';
+ 	$res=SQLSelectOne("SELECT ID FROM AliIPRelays where IP='".$ip."'");
+ 	
+ 	$relay_id=$res['ID'];
+ 	foreach ($data as $k => $v)
+ 	{
+ 		if(strstr($k,'Port'))
+ 		{
+	 		list($type,$num)=explode('Port',$k);
+	 		$data2[$num]=$v;
+	 	}
+ 	}
+ 	//var_dump($data2);
+ 	foreach( $data2 as $k => $v)
+ 	{
+	 	$sql="SELECT id,value FROM $table WHERE ch_num like '%(".DBSafe($k).")%' AND relay_id='".DBSafe($relay_id)."'";
+		//echo $sql."\n" 	;
+	 	$properties=SQLSelectOne($sql);
+	 	//var_dump($properties);
+	 	if($properties["value"]!=$v)
+	 	{
+	 		$sql="update $table set VALUE=$v where id=".$properties["id"];
+	 		echo $sql."\n" 	;
+	 		file_put_contents("/relay32-32.txt",var_export($sql,TRUE),FILE_APPEND);
+	 		SQLExec($sql);
+	 	}
+	 
+ 	}
+	}
+
+
 function processCycle() {
  global $lib;
  $this->getConfig();
@@ -406,7 +450,7 @@ AliIPRelays_queue -
  AliIPRelays: IP varchar(15) NOT NULL DEFAULT ''
  AliIPRelays: PORT varchar(10) NOT NULL DEFAULT ''
  AliIPRelays: STATUS TINYINT
- AliIPRelays: type ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32','sr-201') NOT NULL
+ AliIPRelays: type ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32','sr-201','Yun relay 32-32') NOT NULL
  AliIPRelays: tcp_mode ENUM('Немедленно','В очередь') DEFAULT 'Немедленно'
  AliIPRelays: period int(10) unsigned
  AliIPRelays: next_check datetime
@@ -437,6 +481,7 @@ EOD;
   //if(!is_array(SQLSelectOne("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = 'AliIPRelay' AND INDEX_NAME <> 'PRIMARY'")))
   //if(!is_array(SQLSelectOne("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = 'AliIPRelay' AND INDEX_NAME = 'relay_id'")))SQLExec("ALTER TABLE `AliIPRelay` ADD INDEX `relay_id` (`relay_id`);");
   if(!is_array(SQLSelectOne("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = 'AliIPRelay' AND INDEX_NAME = 'uniq'")))SQLExec("ALTER TABLE `AliIPRelay` ADD UNIQUE `uniq` (`relay_id`, `ch_num`) USING BTREE;");
+  //SQLSelectOne("ALTER TABLE `AliIPRelays` CHANGE `type` `type` ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32','sr-201','Yun relay 32-32') NOT NULL");
   //if(!is_array(SQLSelectOne("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = 'AliIPRelay' AND INDEX_NAME = 'LINKED_OBJECT'")))SQLExec("ALTER TABLE `AliIPRelay` ADD INDEX `LINKED_OBJECT` (`LINKED_OBJECT`);");
   //if(!is_array(SQLSelectOne("SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = 'AliIPRelay' AND INDEX_NAME = 'LINKED_PROPERTY'")))SQLExec("ALTER TABLE `AliIPRelay` ADD INDEX `LINKED_PROPERTY` (`LINKED_PROPERTY`);");
  }

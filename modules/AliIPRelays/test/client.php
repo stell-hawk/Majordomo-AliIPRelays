@@ -1,16 +1,15 @@
 <?php
 
-DEFINE("AliConnectTimeout",1);//таймаут в секундах
-include_once('../Eth8Relayv2_library.php');
-$e8r=new Eth8Relayv2_lib("192.168.220.165",1234);
+DEFINE("AliConnectTimeout",1);
+include_once('../Yun_library.php');
+$e8r=new Yun_lib("192.168.220.45",80);
 
 echo "!test get_data:\n";
 print_r( $e8r->get_data());
 echo "!test Relay_on 7:\n";
-var_dump($e8r->Relay_on(7));
-
-//echo "!test Relay_off 7:\n";
-//var_dump($e8r->Relay_off(7));
+var_dump($e8r->Relay_on('2(49)'));
+echo "!test Relay_off 7:\n";
+var_dump($e8r->Relay_off('1(69)'));
 
 
 exit(0);

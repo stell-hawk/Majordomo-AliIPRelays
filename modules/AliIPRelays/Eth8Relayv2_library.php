@@ -27,7 +27,7 @@ if (!$this->connected)echo 'Unable to connect to '.$this->host.":".$this->port;
 }
 function send($in)
 {
-    socket_send($this->socket,$in,strlen($in),MSG_EOF);
+    socket_send($this->socket,$in,strlen($in),NULL);
     return socket_read($this->socket,1024);
 }
 
