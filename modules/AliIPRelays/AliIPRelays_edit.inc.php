@@ -7,7 +7,7 @@
   }
   $table_name='AliIPRelays';
   $rec=SQLSelectOne("SELECT * FROM $table_name WHERE ID='$id'");
-  print_r($this->mode);
+  //print_r($this->mode);
   if ($this->mode=='update') {
    $ok=1;
   // step: default
@@ -40,9 +40,11 @@
    if ($ok) {
     if ($rec['ID']) {
      SQLUpdate($table_name, $rec); // update
+     $this->clearCache("Ali:");
     } else {
      $new_rec=1;
      $rec['ID']=SQLInsert($table_name, $rec); // adding new record
+     $this->clearCache("Ali:");
     }
     $out['OK']=1;
    } else {
@@ -88,11 +90,13 @@
 	if ($title_new) {
 	 $prop=array('TITLE'=>$title_new,'relay_id'=>$rec['ID']);
 	 $new_id=SQLInsert('AliIPRelay',$prop);
+	 $this->clearCache("Ali:");
 	}
    }
    global $delete_id;
    if ($delete_id) {
     SQLExec("DELETE FROM AliIPRelay WHERE ID='".(int)$delete_id."'");
+    $this->clearCache("Ali:");
    }
    $properties=SQLSelect("SELECT * FROM AliIPRelay WHERE relay_id='".$rec['ID']."' ORDER BY ID");
    $total=count($properties);
@@ -110,6 +114,7 @@
       global ${'linked_method'.$properties[$i]['ID']};
       $properties[$i]['LINKED_METHOD']=trim(${'linked_method'.$properties[$i]['ID']});
       SQLUpdate('AliIPRelay', $properties[$i]);
+      $this->clearCache("Ali:");
       $old_linked_object=$properties[$i]['LINKED_OBJECT'];
       $old_linked_property=$properties[$i]['LINKED_PROPERTY'];
       if ($old_linked_object && $old_linked_object!=$properties[$i]['LINKED_OBJECT'] && $old_linked_property && $old_linked_property!=$properties[$i]['LINKED_PROPERTY']) {

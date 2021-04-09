@@ -1,9 +1,5 @@
 <?php
 
-//$e8r=new eth8relay("192.168.220.166",1234);
-
-//echo $e8r->send("dump");
-//echo $e8r->Relay_switch(1);
 class Yun_lib
 {
 
@@ -37,7 +33,7 @@ function Relay_on($pin='1')
 	list($trash,$pin)=explode("(",$pin);
 	$service_url = 'http://'.$this->host.'/arduino/'.$mode.'/' .(int)$pin.'/' . $command;		
 	$buf1=$this->send_by_http($service_url);
-  if($buf1)return true;
+      if($buf1)return true;
     else return false;
 }
 

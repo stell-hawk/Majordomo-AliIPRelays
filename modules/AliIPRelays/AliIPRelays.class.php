@@ -8,6 +8,7 @@
 */
 //
 DEFINE("AliConnectTimeout",1);//таймаут в секундах
+DEFINE("AliDebug",0);//DEBUG
 
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relay_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Eth8Relayv2_library.php');
@@ -193,6 +194,7 @@ function usual(&$out) {
   $rec=SQLSelectOne("SELECT * FROM AliIPRelays WHERE ID='$id'");
   // some action for related tables
   SQLExec("DELETE FROM AliIPRelays WHERE ID='".$rec['ID']."'");
+  $this->clearCache("Ali:");
  }
 /**
 * AliIPRelay search
@@ -223,12 +225,29 @@ function usual(&$out) {
  	   $e8r=new $class($v['IP'],$v['PORT']);
 		 if($e8r->connected)
  			{
- 				if($value)$e8r->Relay_on($properties[$i]['ch_num']);
- 				else $e8r->Relay_off($properties[$i]['ch_num']);
+ 				if($value)
+ 				{
+ 					  $e8r->Relay_on($properties[$i]['ch_num']);
+ 						$sql="update $table set VALUE=1 where id=".$properties[$i]['ID'];
+	 					if(AliDebug)debmes($sql,"AliIPRelays");
+	 					SQLExec($sql);
+	 					$this->clearCache("Ali:");
+ 					
+ 				}
+ 				else 
+ 				{
+ 					$e8r->Relay_off($properties[$i]['ch_num']);
+					$sql="update $table set VALUE=0 where id=".$properties[$i]['ID'];
+ 					if(AliDebug)debmes($sql,"AliIPRelays");
+ 					SQLExec($sql);
+ 					$this->clearCache("Ali:");
+
+ 				}
     	}
     }
    }
  }
+
 
 //Установить все значения согласно присоединенным устройствам
  function RelaySetFromLinkedProporties($id,$getr) {
@@ -250,14 +269,23 @@ function usual(&$out) {
  				//echo $prop_name." --> ".$prop_data." ??? ".$getr[$properties[$i]['ch_num']]."\n";
  				if($prop_data != $getr[$properties[$i]['ch_num']])
  				{
- 				echo $prop_name." --> ".$prop_data." <> ".$getr[$properties[$i]['ch_num']]."\n";
+ 				debmes($prop_name." --> ".$prop_data." <> ".$getr[$properties[$i]['ch_num']],"AliIPRelays");;
  				if($prop_data)
- 				{$e8r->Relay_on($properties[$i]['ch_num']);
- 				echo "Relay_on(".$properties[$i]['ch_num'].")\n";
+ 				{
+ 						$e8r->Relay_on($properties[$i]['ch_num']);
+ 					 	$sql="update $table set VALUE=1 where id=".$properties[$i]['ID'];
+	 					if(AliDebug)debmes($sql,"AliIPRelays");
+	 					SQLExec($sql);
+	 					$this->clearCache("Ali:");
+ 						echo "Relay_on(".$properties[$i]['ch_num'].")\n";
  				}
  				else 
  				{
  					$e8r->Relay_off($properties[$i]['ch_num']);
+ 					 	$sql="update $table set VALUE=0 where id=".$properties[$i]['ID'];
+	 					if(AliDebug)debmes($sql,"AliIPRelays");
+	 					SQLExec($sql);
+	 					$this->clearCache("Ali:"); 					
  					echo "Relay_off(".$properties[$i]['ch_num'].")\n"; 					
  				}
  				
@@ -268,22 +296,21 @@ function usual(&$out) {
    }
    
  }
-function processIncomingMessage()
-{
+ 
+ 
+function processIncomingMessage(){
 	$ip=$_SERVER['REMOTE_ADDR'];
 	$data=$_REQUEST;
-
-	file_put_contents("/relay32-32.txt",var_export($_REQUEST,TRUE),FILE_APPEND);
-	file_put_contents("/relay32-32.txt",var_export($_SERVER	['REMOTE_ADDR'],TRUE),FILE_APPEND);
-	/*$ip='192.168.220.45';
-	$data=array ('inPort2' => '1','outPort24' => '0','i' => '26');
-	*/
 	
+	if(AliDebug)
+	{echo "got from $ip message:" .json_encode($data);
+		debmes("got from $ip message:" .json_encode($data),"AliIPRelays");	
+	}
  	global $lib;
  	$this->getConfig();
  	$table='AliIPRelay';
  	$res=SQLSelectOne("SELECT ID FROM AliIPRelays where IP='".$ip."'");
- 	
+	if(AliDebug)debmes("SELECT ID FROM AliIPRelays where IP='".$ip."'","AliIPRelays");	
  	$relay_id=$res['ID'];
  	foreach ($data as $k => $v)
  	{
@@ -293,30 +320,109 @@ function processIncomingMessage()
 	 		$data2[$num]=$v;
 	 	}
  	}
- 	//var_dump($data2);
+ 	
  	foreach( $data2 as $k => $v)
  	{
-	 	$sql="SELECT id,value FROM $table WHERE ch_num like '%(".DBSafe($k).")%' AND relay_id='".DBSafe($relay_id)."'";
-		//echo $sql."\n" 	;
+ 		//защитный интервал 2 секунды от зацикливания
+	 	$sql="SELECT id,value,`LINKED_OBJECT`,`LINKED_PROPERTY`,`LINKED_METHOD` FROM $table WHERE ch_num like '%(".DBSafe($k).")%' AND relay_id='".DBSafe($relay_id)."'";
+		if(AliDebug)debmes($sql,"AliIPRelays");	
 	 	$properties=SQLSelectOne($sql);
-	 	//var_dump($properties);
-	 	if($properties["value"]!=$v)
+	 	if(AliDebug)debmes(json_encode($properties),"AliIPRelays");	
+	 	if($properties&&$properties["value"]!=$v)
 	 	{
 	 		$sql="update $table set VALUE=$v where id=".$properties["id"];
-	 		echo $sql."\n" 	;
-	 		file_put_contents("/relay32-32.txt",var_export($sql,TRUE),FILE_APPEND);
+	 		if(AliDebug)debmes($sql,"AliIPRelays");
 	 		SQLExec($sql);
+	 		$this->clearCache("Ali:");
+	 		if($properties['LINKED_OBJECT']!='')
+   			{
+	   			if (gg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'])<>$v)
+	   			{
+	   				echo "sg(".$properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'].",".$v.")\n";
+	   				debmes("sg(".$properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'].",".$v.")","AliIPRelays");
+	   				sg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'],$v);
+	   			}
+		      if ($properties['LINKED_METHOD']) {
+	          callMethod($properties['LINKED_OBJECT'].'.'.$properties['LINKED_METHOD'],$data);
+	        }
+	                               			
+	   		}
 	 	}
 	 
  	}
-	}
+}
+//Достает данные из кэша если их там нет, то из базы и складывает в кэш 
+function getData($key,$sql,$one=false)
+{
+ 	//echo $key;
+	if($res=CheckFromCache($key))
+	//if(0)
+ 	{
+ 		//echo $key." -> ".json_encode($res);
+ 		//echo " -> from cache\n";
+ 		
+ 		$res=json_decode($res,true);
+ 		
+ 	}
+ 	else 
+ 	{
+	 if(!$one)$res=SQLSelect($sql);
+ 	 else $res=SQLSelectOne($sql);
+	 //echo $key." -> ".json_encode($res);
+   //echo " -> from  db\n";
+	 SaveToCache($key,json_encode($res));
+ 		
+ 	}
+ 	return $res;
+}
+
+//Достает данные из кэша если их там нет, то из базы и складывает в кэш 
+function clearCache($prefix)
+{
+	echo "clearing cache\n";
+    if (defined('USE_REDIS')) {
+        global $redisConnection;
+        if (!isset($redisConnection)) {
+            $redisConnection = new Redis();
+            $redisConnection->pconnect(USE_REDIS);
+        }
+        $list=$redisConnection->getKeys($prefix."*");
+		    foreach($list as $key1) 
+    			$redisConnection->del($key1);
+        return true;
+    }
+    else SQLExec("delete from cached_values where KEYWORD like '$prefix%'");
+}
+
+function getCache($prefix)
+{
+	$out=array();
+    if (defined('USE_REDIS')) {
+        global $redisConnection;
+        if (!isset($redisConnection)) {
+            $redisConnection = new Redis();
+            $redisConnection->pconnect(USE_REDIS);
+        }
+        $list=$redisConnection->getKeys($prefix."*");
+		    foreach($list as $key1) 
+    			$out[$key1]=$redisConnection->get($key1);
+    }
+    else $out=SQLExec("select * from cached_values where KEYWORD like '$prefix%'");
+
+    return $out;
+
+}
+
+
 
 
 function processCycle() {
  global $lib;
  $this->getConfig();
  $table='AliIPRelay';
- $res=SQLSelect("SELECT * FROM AliIPRelays");
+ $res=$this->getData("Ali:AliIPRelays","SELECT ID,IP,PORT,type FROM AliIPRelays");
+ 
+ 
  foreach ($res as $v)
  {
  	//echo "connect to ".$v['IP'].":".$v['PORT']."\n";
@@ -342,23 +448,28 @@ function processCycle() {
  	  	$data['TITLE']="ch ".$key;
  	  	$data['ch_num']=$key;
  	  	$data['relay_id']=$v['ID'];
- 	  	$sql="SELECT * FROM $table WHERE ch_num='".DBSafe($data['ch_num'])."' AND relay_id='".DBSafe($data['relay_id'])."'";
- 	  	$properties=SQLSelectOne($sql);
+ 	  	$sql="SELECT LINKED_OBJECT,LINKED_PROPERTY,LINKED_METHOD,VALUE FROM $table WHERE ch_num='".DBSafe($data['ch_num'])."' AND relay_id='".DBSafe($data['relay_id'])."'";
+ 	  	$properties=$this->getData("Ali:AliIPRelay|ch_num".DBSafe($data['ch_num'])."|relay_id".DBSafe($data['relay_id']),$sql,true);
+ 	  	//SQLSelectOne($sql);
+ 	  	
+ 	  	
  	  	if(!$properties)
 	  	{
-	  		//echo "need to add\n";
+  		  //echo "need to add\n";
 	  		SQLExec(
  	  	 "INSERT INTO `AliIPRelay` (VALUE, ch_num,relay_id,TITLE) 
  	  	 VALUES ('".$data['VALUE']."','".$data['ch_num']."','".$data['relay_id']."','".$data['TITLE']."')
  	  	 ON DUPLICATE KEY UPDATE VALUE='".$data['VALUE']."'");
+ 	  	 $this->clearCache("Ali:");
  	  	}
  	  	if($properties['VALUE']!=$data['VALUE'])
 	  	{
-	  		//echo "need to update\n";
+	  		//echo "need to update (" . $properties['VALUE'] . "<>" . $data['VALUE'].")\n";
 	  		SQLExec(
  	  	 "INSERT INTO `AliIPRelay` (VALUE, ch_num,relay_id,TITLE) 
  	  	 VALUES ('".$data['VALUE']."','".$data['ch_num']."','".$data['relay_id']."','".$data['TITLE']."')
  	  	 ON DUPLICATE KEY UPDATE VALUE='".$data['VALUE']."'");
+ 	  	 $this->clearCache("Ali:");
  	  	}
  	  	/*else 
  	  	{echo "not need to update\n";	}*/
@@ -368,7 +479,7 @@ function processCycle() {
    			if (gg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'])<>$data['VALUE'])
    			{
    				echo "sg(".$properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'].",".$data['VALUE'].")\n";
-   				sg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'],$data['VALUE']);
+   				sg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'],$data['VALUE'],0,"processCycle");
    			}
 	        if ($properties['LINKED_METHOD']) {
                     callMethod($properties['LINKED_OBJECT'].'.'.$properties['LINKED_METHOD'],$data);
@@ -456,6 +567,7 @@ AliIPRelays_queue -
  AliIPRelays: next_check datetime
  AliIPRelays: UPDATED TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
  AliIPRelays: INDEX type (type)
+ AliIPRelays: INDEX IP (IP)
  
  AliIPRelay: ID int(10) unsigned NOT NULL auto_increment
  AliIPRelay: relay_id int(10) NOT NULL DEFAULT '0'

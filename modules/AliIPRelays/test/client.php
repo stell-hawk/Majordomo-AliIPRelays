@@ -7,9 +7,7 @@ $e8r=new Yun_lib("192.168.220.45",80);
 echo "!test get_data:\n";
 print_r( $e8r->get_data());
 echo "!test Relay_on 7:\n";
-var_dump($e8r->Relay_on('2(49)'));
-echo "!test Relay_off 7:\n";
-var_dump($e8r->Relay_off('1(69)'));
+var_dump($e8r->Relay_on('21(30)'));
 
 
 exit(0);
