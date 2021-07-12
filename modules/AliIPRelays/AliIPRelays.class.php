@@ -354,6 +354,7 @@ function processIncomingMessage(){
 //Достает данные из кэша если их там нет, то из базы и складывает в кэш 
 function getData($key,$sql,$one=false)
 {
+		$key=strtolower($key);
  	//echo $key;
 	if($res=CheckFromCache($key))
 	//if(0)
@@ -379,6 +380,7 @@ function getData($key,$sql,$one=false)
 //Достает данные из кэша если их там нет, то из базы и складывает в кэш 
 function clearCache($prefix)
 {
+	$prefix=strtolower($prefix);
 	echo "clearing cache\n";
     if (defined('USE_REDIS')) {
         global $redisConnection;
@@ -394,8 +396,9 @@ function clearCache($prefix)
     else SQLExec("delete from cached_values where KEYWORD like '$prefix%'");
 }
 
-function getCache($prefix)
+function getCache($prefix='')
 {
+	$prefix=strtolower($prefix);
 	$out=array();
     if (defined('USE_REDIS')) {
         global $redisConnection;
@@ -420,7 +423,7 @@ function processCycle() {
  global $lib;
  $this->getConfig();
  $table='AliIPRelay';
- $res=$this->getData("Ali:AliIPRelays","SELECT ID,IP,PORT,type FROM AliIPRelays");
+ $res=$this->getData("Ali:AliIPRelays","SELECT ID,IP,PORT,type,period FROM AliIPRelays");
  
  
  foreach ($res as $v)

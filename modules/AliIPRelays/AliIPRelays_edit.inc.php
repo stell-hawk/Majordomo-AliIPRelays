@@ -21,6 +21,7 @@
   //updating 'ip,port,title,status,period' (varchar)
    $rec['IP']=gr('ip');
    $rec['PORT']=gr('port');
+   $rec['period']=gr('period');
    $rec['type']=gr('type');
    $rec['tcp_mode']=gr('tcp_mode');
    //updating '<%LANG_UPDATED% >' (datetime)

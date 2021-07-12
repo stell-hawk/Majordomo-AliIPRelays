@@ -34,6 +34,14 @@
  <div class="col-lg-9"><input id="port" name="port" value="[#PORT#]" type="text" class="form-control"></div>
 </div>
 
+<div class="form-group[#if ERR_PERIOD#] has-error[#endif#]">
+ <label for="period" class="col-lg-3 control-label">
+ period(sec)
+ </label>
+ <div class="col-lg-9"><input id="period" name="period" value="[#PERIOD#]" type="text" class="form-control"></div>
+</div>
+
+
 <div class="form-group[#if ERR_type#] has-error[#endif#]">
  <label for="type" class="col-lg-3 control-label">
  type
