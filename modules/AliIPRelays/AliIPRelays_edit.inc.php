@@ -25,10 +25,7 @@
    $rec['type']=gr('type');
    $rec['tcp_mode']=gr('tcp_mode');
    //updating '<%LANG_UPDATED% >' (datetime)
-   global $updated_date;
-   global $updated_minutes;
-   global $updated_hours;
-   $rec['UPDATED']=toDBDate($updated_date)." $updated_hours:$updated_minutes:00";
+   //$rec['UPDATED']=toDBDate($updated_date)." $updated_hours:$updated_minutes:00";
   
   
   
@@ -55,11 +52,11 @@
   // step: default
   if ($this->tab=='') {
   if ($rec['UPDATED']!='') {
-   $tmp=explode(' ', $rec['UPDATED']);
+   /*$tmp=explode(' ', $rec['UPDATED']);
    $out['UPDATED_DATE']=fromDBDate($tmp[0]);
    $tmp2=explode(':', $tmp[1]);
    $updated_hours=$tmp2[0];
-   $updated_minutes=$tmp2[1];
+   $updated_minutes=$tmp2[1];*/
   }
   for($i=0;$i<60;$i++) {
    $title=$i;

@@ -381,7 +381,7 @@ function getData($key,$sql,$one=false)
 function clearCache($prefix)
 {
 	$prefix=strtolower($prefix);
-	echo "clearing cache\n";
+	//echo "clearing cache\n";
     if (defined('USE_REDIS')) {
         global $redisConnection;
         if (!isset($redisConnection)) {

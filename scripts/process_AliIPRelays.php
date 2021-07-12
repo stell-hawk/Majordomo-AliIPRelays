@@ -14,3 +14,5 @@ include_once(DIR_MODULES . 'AliIPRelays/AliIPRelays.class.php');
 $AliIPRelays_module = new AliIPRelays();
 $AliIPRelays_module->getConfig();
 $AliIPRelays_module->processIncomingMessage();
+
+return(1);
