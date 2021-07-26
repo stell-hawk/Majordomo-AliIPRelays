@@ -15,8 +15,9 @@ include_once(DIR_MODULES.'AliIPRelays/Eth8Relayv2_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Yun_library.php');
 include_once(DIR_MODULES.'AliIPRelays/KinCony_library.php');
 include_once(DIR_MODULES.'AliIPRelays/Sr201_library.php');
+include_once(DIR_MODULES.'AliIPRelays/sw16_library.php');
 
-$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relayv2','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201','Yun relay 32-32' =>'Yun');
+$lib=array('Eth8Relay v5'=>'Eth8Relay','Eth8Relay v6'=>'Eth8Relayv2','kc868-h8'=>'KinCony','kc868-h16'=>'KinCony','kc868-h32'=>'KinCony','sr-201'=>'sr201','Yun relay 32-32' =>'Yun','sw16'=>'sw16');
 
 //
 class AliIPRelays extends module {
@@ -212,6 +213,7 @@ function usual(&$out) {
  function edit_AliIPRelay(&$out, $id) {
   require(DIR_MODULES.$this->name.'/AliIPRelay_edit.inc.php');
  }
+
  function propertySetHandle($object, $property, $value) {
  	 global $lib;
    $table='AliIPRelay';
@@ -221,7 +223,9 @@ function usual(&$out) {
     for($i=0;$i<$total;$i++) {
      //to-do
      $v=SQLSelectOne("SELECT * FROM AliIPRelays where id=".$properties[$i]['relay_id']);
+     //debmes()
  		 $class=$lib[$v['type']]."_lib";
+ 		 //if($lib[$v['type']]=='')$class=$v['type'];
  	   $e8r=new $class($v['IP'],$v['PORT']);
 		 if($e8r->connected)
  			{
@@ -420,82 +424,7 @@ function getCache($prefix='')
 
 
 function processCycle() {
- global $lib;
- $this->getConfig();
- $table='AliIPRelay';
- $res=$this->getData("Ali:AliIPRelays","SELECT ID,IP,PORT,type,period FROM AliIPRelays");
- 
- 
- foreach ($res as $v)
- {
- 	//echo "connect to ".$v['IP'].":".$v['PORT']."\n";
- 	$class=$lib[$v['type']]."_lib";
- 	$e8r=new $class($v['IP'],$v['PORT']);
- 	if($e8r->connected)
- 	{
- 	  $getr=$e8r->get_data();
- 	  //echo json_encode($getr);
- 	  
- 	  if($e8r->need_activate($getr))
- 	  {
- 	  	$e8r->activate();	
- 	  	$this->RelaySetFromLinkedProporties($v['ID'],$getr);
- 	  	$getr=$e8r->get_data();
- 	  	}
- 	   $this->lastsate[$v['IP'].":".$v['PORT']]=json_encode($getr);
- 	  
- 	  $data=array();
- 	  foreach ($getr as $key => $val)
- 	  {
- 	  	$data['VALUE']=$val;
- 	  	$data['TITLE']="ch ".$key;
- 	  	$data['ch_num']=$key;
- 	  	$data['relay_id']=$v['ID'];
- 	  	$sql="SELECT LINKED_OBJECT,LINKED_PROPERTY,LINKED_METHOD,VALUE FROM $table WHERE ch_num='".DBSafe($data['ch_num'])."' AND relay_id='".DBSafe($data['relay_id'])."'";
- 	  	$properties=$this->getData("Ali:AliIPRelay|ch_num".DBSafe($data['ch_num'])."|relay_id".DBSafe($data['relay_id']),$sql,true);
- 	  	//SQLSelectOne($sql);
- 	  	
- 	  	
- 	  	if(!$properties)
-	  	{
-  		  //echo "need to add\n";
-	  		SQLExec(
- 	  	 "INSERT INTO `AliIPRelay` (VALUE, ch_num,relay_id,TITLE) 
- 	  	 VALUES ('".$data['VALUE']."','".$data['ch_num']."','".$data['relay_id']."','".$data['TITLE']."')
- 	  	 ON DUPLICATE KEY UPDATE VALUE='".$data['VALUE']."'");
- 	  	 $this->clearCache("Ali:");
- 	  	}
- 	  	if($properties['VALUE']!=$data['VALUE'])
-	  	{
-	  		//echo "need to update (" . $properties['VALUE'] . "<>" . $data['VALUE'].")\n";
-	  		SQLExec(
- 	  	 "INSERT INTO `AliIPRelay` (VALUE, ch_num,relay_id,TITLE) 
- 	  	 VALUES ('".$data['VALUE']."','".$data['ch_num']."','".$data['relay_id']."','".$data['TITLE']."')
- 	  	 ON DUPLICATE KEY UPDATE VALUE='".$data['VALUE']."'");
- 	  	 $this->clearCache("Ali:");
- 	  	}
- 	  	/*else 
- 	  	{echo "not need to update\n";	}*/
- 	  	
-   		if($properties&&$properties['LINKED_OBJECT']!='')
-   		{
-   			if (gg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'])<>$data['VALUE'])
-   			{
-   				echo "sg(".$properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'].",".$data['VALUE'].")\n";
-   				sg($properties['LINKED_OBJECT'].".".$properties['LINKED_PROPERTY'],$data['VALUE'],0,"processCycle");
-   			}
-	        if ($properties['LINKED_METHOD']) {
-                    callMethod($properties['LINKED_OBJECT'].'.'.$properties['LINKED_METHOD'],$data);
-          }
-                               			
-   		}
-   		
- 	  }
-	  
- 	}
- 	
- }
- //print_r($this->lastsate);
+
 	
 }
 
@@ -564,7 +493,7 @@ AliIPRelays_queue -
  AliIPRelays: IP varchar(15) NOT NULL DEFAULT ''
  AliIPRelays: PORT varchar(10) NOT NULL DEFAULT ''
  AliIPRelays: STATUS TINYINT
- AliIPRelays: type ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32','sr-201','Yun relay 32-32') NOT NULL
+ AliIPRelays: type ENUM('Eth8Relay v5','Eth8Relay v6','kc868-h8','kc868-h16','kc868-h32','sr-201','Yun relay 32-32','sw16') NOT NULL
  AliIPRelays: tcp_mode ENUM('Немедленно','В очередь') DEFAULT 'Немедленно'
  AliIPRelays: period int(10) unsigned
  AliIPRelays: next_check datetime
